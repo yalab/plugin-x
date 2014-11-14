@@ -28,8 +28,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.google.ads.*;
-import com.google.ads.AdRequest.ErrorCode;
+import com.google.android.gms.ads.*;
 
 import android.app.Activity;
 import android.content.Context;
@@ -169,36 +168,39 @@ public class AdsAdmob implements InterfaceAds {
 					size = AdSize.BANNER;
 					break;
 				case AdsAdmob.ADMOB_SIZE_IABMRect:
-					size = AdSize.IAB_MRECT;
+					size = AdSize.MEDIUM_RECTANGLE;
 					break;
 				case AdsAdmob.ADMOB_SIZE_IABBanner:
-					size = AdSize.IAB_BANNER;
+					size = AdSize.BANNER;
 					break;
 				case AdsAdmob.ADMOB_SIZE_IABLeaderboard:
-					size = AdSize.IAB_LEADERBOARD;
+					size = AdSize.LEADERBOARD;
 					break;
 				case AdsAdmob.ADMOB_SIZE_Skyscraper:
-				    size = AdSize.IAB_WIDE_SKYSCRAPER;
+				    size = AdSize.WIDE_SKYSCRAPER;
 				    break;
 				default:
 					break;
 				}
-				adView = new AdView(mContext, size, mPublishID);
-				AdRequest req = new AdRequest();
+				adView = new AdView(mContext);
+        adView.setAdSize(size);
+        adView.setAdUnitId(mPublishID);
+				AdRequest.Builder req = new AdRequest.Builder();
 				
 				try {
 					if (mTestDevices != null) {
+            req = req.addTestDevice(AdRequest.DEVICE_ID_EMULATOR);
 						Iterator<String> ir = mTestDevices.iterator();
 						while(ir.hasNext())
 						{
-							req.addTestDevice(ir.next());
+							req = req.addTestDevice(ir.next());
 						}
 					}
 				} catch (Exception e) {
 					LogE("Error during add test device", e);
 				}
 				
-				adView.loadAd(req);
+				adView.loadAd(req.build());
 				adView.setAdListener(new AdmobAdsListener());
 
 				if (null == mWm) {
@@ -232,51 +234,50 @@ public class AdsAdmob implements InterfaceAds {
 		mTestDevices.add(deviceID);
 	}
 
-	private class AdmobAdsListener implements AdListener {
+	private class AdmobAdsListener extends AdListener {
 
-		@Override
-		public void onDismissScreen(Ad arg0) {
-			LogD("onDismissScreen invoked");
-			AdsWrapper.onAdsResult(mAdapter, AdsWrapper.RESULT_CODE_AdsDismissed, "Ads view dismissed!");
+		public void onAdClosed() {
+			LogD("onAdClosed invoked");
+			AdsWrapper.onAdsResult(mAdapter, AdsWrapper.RESULT_CODE_AdsDismissed, "Ads view closed!");
 		}
 
-		@Override
-		public void onFailedToReceiveAd(Ad arg0, ErrorCode arg1) {
+		public void onFailedToLoad(int errorCode) {
 			int errorNo = AdsWrapper.RESULT_CODE_UnknownError;
 			String errorMsg = "Unknow error";
-			switch (arg1) {
-			case NETWORK_ERROR:
+			switch (errorCode) {
+			case AdRequest.ERROR_CODE_NETWORK_ERROR:
 				errorNo =  AdsWrapper.RESULT_CODE_NetworkError;
 				errorMsg = "Network error";
 				break;
-			case INVALID_REQUEST:
+			case AdRequest.ERROR_CODE_INVALID_REQUEST:
 				errorNo = AdsWrapper.RESULT_CODE_NetworkError;
 				errorMsg = "The ad request is invalid";
 				break;
-			case NO_FILL:
+			case AdRequest.ERROR_CODE_NO_FILL:
 				errorMsg = "The ad request is successful, but no ad was returned due to lack of ad inventory.";
 				break;
+      case AdRequest.ERROR_CODE_INTERNAL_ERROR:
+				errorMsg = "The ad request is internal error";
+				break;
+
 			default:
 				break;
 			}
-			LogD("failed to receive ad : " + errorNo + " , " + errorMsg);
+			LogD("failed to load ad : " + errorNo + " , " + errorMsg);
 			AdsWrapper.onAdsResult(mAdapter, errorNo, errorMsg);
 		}
 
-		@Override
-		public void onLeaveApplication(Ad arg0) {
-			LogD("onLeaveApplication invoked");
+		public void onAdLeftApplication() {
+			LogD("onAdLeftApplication invoked");
 		}
 
-		@Override
-		public void onPresentScreen(Ad arg0) {
-			LogD("onPresentScreen invoked");
+		public void onAdOpened() {
+			LogD("onAdOpened invoked");
 			AdsWrapper.onAdsResult(mAdapter, AdsWrapper.RESULT_CODE_AdsShown, "Ads view shown!");
 		}
 
-		@Override
-		public void onReceiveAd(Ad arg0) {
-			LogD("onReceiveAd invoked");
+		public void onAdLoaded() {
+			LogD("onAdLoaded invoked");
 			AdsWrapper.onAdsResult(mAdapter, AdsWrapper.RESULT_CODE_AdsReceived, "Ads request received success!");
 		}
 	}
