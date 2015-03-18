@@ -28,27 +28,10 @@ For the to compile correctly you must do the following.
 ```java
 // This must be added to the new Cocos2dxActivity.java classes in cocos2d-x 3.0 + recently added
 
-
-private static Set<OnActivityResultListener> onActivityResultListeners = new LinkedHashSet<OnActivityResultListener>();
-
-
-public static void addOnActivityResultListener(OnActivityResultListener listener) {
-    onActivityResultListeners.add(listener);
-}
-
-public static Set<OnActivityResultListener> getOnActivityResultListeners() {
-    return onActivityResultListeners;
-}
-
-
-
- @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        for (OnActivityResultListener listener : Cocos2dxHelper.getOnActivityResultListeners()) {
-            listener.onActivityResult(requestCode, resultCode, data);
-        }
-
-        super.onActivityResult(requestCode, resultCode, data);
-    }
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data)
+  {
+    PluginWrapper.onActivityResult(requestCode, resultCode, data);
+    super.onActivityResult(requestCode, resultCode, data);
+  }
 ```
