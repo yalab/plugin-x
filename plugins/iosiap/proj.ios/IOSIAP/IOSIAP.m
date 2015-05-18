@@ -34,8 +34,10 @@ bool _isAddObserver = false;
 SKProductsRequest * _productsRequest;
 //productTransation
 NSArray * _transactionArray;
+UIAlertView * _alert = nil;
 
 -(void) configDeveloperInfo: (NSMutableDictionary*) cpInfo{
+    [self requestProducts :[cpInfo objectForKey:@"iapKeys" ]];
 }
 - (void) payForProduct: (NSMutableDictionary*) cpInfo{
     NSString * pid = [cpInfo objectForKey:@"productId"];
@@ -109,18 +111,41 @@ NSArray * _transactionArray;
 //SKPaymentTransactionObserver needed
 - (void)paymentQueue:(SKPaymentQueue *)queue updatedTransactions:(NSArray *)transactions{
     _transactionArray = transactions;
+
     for (SKPaymentTransaction * transaction in transactions) {
         switch (transaction.transactionState)
         {
-            case SKPaymentTransactionStatePurchased:
+            case SKPaymentTransactionStatePurchasing: {
+                if(_alert == nil){
+                    _alert = [[UIAlertView alloc]initWithTitle: @"通信中" message: @"課金処理を行っています" delegate: nil cancelButtonTitle: nil otherButtonTitles: nil];
+                    UIActivityIndicatorView *ind = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle: UIActivityIndicatorViewStyleGray];
+                    [ind startAnimating];
+                    [_alert setValue:ind forKey:@"accessoryView"];
+                    [_alert show];
+                }
+                break;
+            }
+            case SKPaymentTransactionStatePurchased: {
+                [_alert dismissWithClickedButtonIndex:-1 animated:YES];
                 [self completeTransaction:transaction];
+                _alert = nil;
                 break;
-            case SKPaymentTransactionStateFailed:
+            }
+            case SKPaymentTransactionStateFailed: {
                 [self failedTransaction:transaction];
+                [_alert dismissWithClickedButtonIndex:-1 animated:YES];
+                _alert = nil;
                 break;
-            case SKPaymentTransactionStateRestored:
+            }
+            case SKPaymentTransactionStateRestored: {
+                [_alert dismissWithClickedButtonIndex:-1 animated:YES];
                 [self restoreTransaction:transaction];
+                _alert = nil;
+                break;
+            }
             default:
+                _alert = nil;
+                [_alert dismissWithClickedButtonIndex:-1 animated:YES];
                 break;
         }
     };
@@ -162,7 +187,7 @@ NSArray * _transactionArray;
     if (transaction.error.code != SKErrorPaymentCancelled)
     {
         OUTPUT_LOG(@"Transaction error: %@", transaction.error.localizedDescription);
-        [[[UIAlertView alloc] initWithTitle:@"支付结果" message:transaction.error.localizedDescription delegate:self cancelButtonTitle:@"确定" otherButtonTitles: nil] show];
+        [[[UIAlertView alloc] initWithTitle:@"エラー" message:transaction.error.localizedDescription delegate:self cancelButtonTitle:@"OK" otherButtonTitles: nil] show];
     }
     
     [self finishTransaction:transaction.payment.productIdentifier];

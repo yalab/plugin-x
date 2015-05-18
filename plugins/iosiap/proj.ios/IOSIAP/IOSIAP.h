@@ -25,6 +25,8 @@
 #import <Foundation/Foundation.h>
 #import <StoreKit/StoreKit.h>
 #import "IAPWrapper.h"
+#import <UIKit/UIView.h>
+
 @interface IOSIAP : NSObject<InterfaceIAP,SKProductsRequestDelegate,SKPaymentTransactionObserver>
 
 /**
