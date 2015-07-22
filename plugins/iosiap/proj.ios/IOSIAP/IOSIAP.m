@@ -170,8 +170,10 @@ UIAlertView * _alert = nil;
         }
         [IAPWrapper onPayResult:self withRet:PaymentTransactionStatePurchased withMsg:receipt];
     }else{
+        NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
+        NSData *receipt = [NSData dataWithContentsOfURL:receiptURL];
         [self finishTransaction: transaction.payment.productIdentifier];
-        [IAPWrapper onPayResult:self withRet:PaymentTransactionStatePurchased withMsg:@""];
+        [IAPWrapper onPayResult:self withRet:PaymentTransactionStatePurchased withMsg:[receipt base64EncodedStringWithOptions:0]];
     }
     
 }
