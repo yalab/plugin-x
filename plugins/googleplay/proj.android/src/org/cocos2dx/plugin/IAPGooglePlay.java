@@ -269,13 +269,13 @@ public class IAPGooglePlay implements InterfaceIAP, PluginListener {
             if (result.isFailure()) {
                  Log.d(TAG, "Error purchasing: " + result);
 
-                failPurchase(result.getMessage());
+                failPurchase(purchase.getOriginalJson().toString());
                 return;
             }
             else {
                 Log.d(TAG,"Success!");
                 
-                succeedPurchase(result.getMessage());
+                succeedPurchase(purchase.getOriginalJson().toString());
 
                 //Auto consume the purchase
                 mHelper.consumeAsync(purchase, mConsumeFinishedListener);
