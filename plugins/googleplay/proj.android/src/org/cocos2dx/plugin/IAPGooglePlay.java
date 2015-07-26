@@ -266,16 +266,17 @@ public class IAPGooglePlay implements InterfaceIAP, PluginListener {
         @Override
         public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
         	
+          String resultData = purchase.getOriginalJson().toString() + "\t" + purchase.getSignature();
             if (result.isFailure()) {
                  Log.d(TAG, "Error purchasing: " + result);
 
-                failPurchase(purchase.getOriginalJson().toString());
+                failPurchase(resultData);
                 return;
             }
             else {
                 Log.d(TAG,"Success!");
                 
-                succeedPurchase(purchase.getOriginalJson().toString());
+                succeedPurchase(resultData);
 
                 //Auto consume the purchase
                 mHelper.consumeAsync(purchase, mConsumeFinishedListener);
